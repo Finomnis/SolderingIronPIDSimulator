@@ -1,11 +1,12 @@
 import Chart from "chart.js";
 import { Simulation } from "./simulation";
+import { SimpleController } from "./controllers/simple";
 
 let simulation = new Simulation({
     heater_max_power: 100.0,
     thermal_mass_heater: 5.0,
     thermal_mass_tip: 5.0,
-    thermal_coupling_heater: 0.5,
+    thermal_coupling_heater: 0.3,
     thermal_coupling_air: 0.1,
     thermal_mass_solder: 5.0,
     thermal_coupling_solder: 1.0,
@@ -127,12 +128,15 @@ function nextStep() {
 nextStep();
 */
 
+const controller = new SimpleController(400);
+
 const next_step = () => {
-    if (simulation.get_current_temp() > 400) {
-        simulation.set_heater_duty(0.0);
-    } else {
-        simulation.set_heater_duty(1.0);
-    }
+    const new_duty = controller.update({
+        time: simulation.get_current_time(),
+        temperature: simulation.get_current_temp(),
+    });
+
+    simulation.set_heater_duty(Math.min(1.0, Math.max(0.0, new_duty)));
     simulation.update();
 };
 
