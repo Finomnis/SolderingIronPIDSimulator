@@ -136,11 +136,12 @@ const next_step = () => {
     simulation.update();
 };
 
+while (simulation.time < 100) next_step();
 while (simulation.time < 300) next_step();
 simulation.set_touches_solder(true);
 while (simulation.time < 400) next_step();
 simulation.set_touches_solder(false);
-while (simulation.time < 500) next_step();
+while (simulation.time < 499) next_step();
 
 tempChart.update();
 dutyChart.update();

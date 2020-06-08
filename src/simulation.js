@@ -1,5 +1,20 @@
-const TIME_STEP = 0.2;
+import { runge_kutta } from "./solver";
+
+const TIME_STEP = 0.1;
 const AIR_TEMP = 25.0;
+
+const math_helpers = {
+    add: (val1, val2) => ({
+        temp_heater: val1.temp_heater + val2.temp_heater,
+        temp_tip: val1.temp_tip + val2.temp_tip,
+        temp_solder: val1.temp_solder + val2.temp_solder,
+    }),
+    mul: (val1, val2) => ({
+        temp_heater: val1.temp_heater * val2,
+        temp_tip: val1.temp_tip * val2,
+        temp_solder: val1.temp_solder * val2,
+    }),
+};
 
 export class Simulation {
     constructor({
@@ -89,22 +104,32 @@ export class Simulation {
                 (power_transferred_tip_solder - power_transferred_solder_air) /
                 this.thermal_mass_solder;
 
-            return { deriv_temp_heater, deriv_temp_tip, deriv_temp_solder };
+            return {
+                temp_heater: deriv_temp_heater,
+                temp_tip: deriv_temp_tip,
+                temp_solder: deriv_temp_solder,
+            };
         };
 
-        const { deriv_temp_heater, deriv_temp_tip, deriv_temp_solder } = f({
+        const old_values = {
             temp_heater: this.temp_heater,
             temp_tip: this.temp_tip,
             temp_solder: this.temp_solder,
-        });
+        };
 
-        this.temp_heater += deriv_temp_heater * TIME_STEP;
-        this.temp_tip += deriv_temp_tip * TIME_STEP;
-        this.temp_solder += deriv_temp_solder * TIME_STEP;
+        const new_values = runge_kutta(TIME_STEP, f, old_values, math_helpers);
+
+        this.temp_heater = new_values.temp_heater;
+        this.temp_tip = new_values.temp_tip;
+        this.temp_solder = new_values.temp_solder;
     }
 
     get_current_temp() {
         return this.temp_tip;
+    }
+
+    get_current_time() {
+        return this.time;
     }
 
     set_touches_solder(val) {
