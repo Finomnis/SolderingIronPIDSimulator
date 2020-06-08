@@ -1,43 +1,146 @@
 import Chart from "chart.js";
+import { Simulation } from "./simulation";
 
-var ctx = document.getElementById("myChart").getContext("2d");
-var myChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-        labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-        datasets: [
-            {
-                label: "# of Votes",
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: [
-                    "rgba(255, 99, 132, 0.2)",
-                    "rgba(54, 162, 235, 0.2)",
-                    "rgba(255, 206, 86, 0.2)",
-                    "rgba(75, 192, 192, 0.2)",
-                    "rgba(153, 102, 255, 0.2)",
-                    "rgba(255, 159, 64, 0.2)",
-                ],
-                borderColor: [
-                    "rgba(255, 99, 132, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255, 206, 86, 1)",
-                    "rgba(75, 192, 192, 1)",
-                    "rgba(153, 102, 255, 1)",
-                    "rgba(255, 159, 64, 1)",
-                ],
-                borderWidth: 1,
-            },
-        ],
-    },
-    options: {
-        scales: {
-            yAxes: [
+let simulation = new Simulation({
+    heater_max_power: 100.0,
+    thermal_mass_heater: 5.0,
+    thermal_mass_tip: 5.0,
+    thermal_coupling_heater: 0.5,
+    thermal_coupling_air: 0.1,
+    thermal_mass_solder: 5.0,
+    thermal_coupling_solder: 1.0,
+    thermal_coupling_solder_air: 0.05,
+});
+
+let tempChart = new Chart(
+    document.getElementById("tempChart").getContext("2d"),
+    {
+        type: "line",
+        data: {
+            datasets: [
                 {
-                    ticks: {
-                        beginAtZero: true,
-                    },
+                    label: "Heater",
+                    data: simulation.chart_temp_heater,
+                    borderColor: "red",
+                    pointRadius: 0,
+                },
+                {
+                    label: "Tip",
+                    data: simulation.chart_temp_tip,
+                    borderColor: "blue",
+                    pointRadius: 0,
+                },
+                {
+                    label: "Solder",
+                    data: simulation.chart_temp_solder,
+                    borderColor: "green",
+                    pointRadius: 0,
                 },
             ],
         },
-    },
-});
+        options: {
+            animation: {
+                duration: 0, // general animation time
+            },
+            scales: {
+                yAxes: [
+                    {
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function (value, index, values) {
+                                return value + " °C";
+                            },
+                        },
+                    },
+                ],
+                xAxes: [
+                    {
+                        type: "linear",
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function (value, index, values) {
+                                return value + " s";
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    }
+);
+
+let dutyChart = new Chart(
+    document.getElementById("dutyChart").getContext("2d"),
+    {
+        type: "line",
+        data: {
+            datasets: [
+                {
+                    label: "Touches Solder",
+                    data: simulation.chart_touches_solder,
+                    borderColor: "green",
+                    pointRadius: 0,
+                },
+                {
+                    label: "Heater Duty",
+                    data: simulation.chart_heater_duty,
+                    borderColor: "red",
+                    pointRadius: 0,
+                },
+            ],
+        },
+        options: {
+            animation: {
+                duration: 0, // general animation time
+            },
+            scales: {
+                yAxes: [
+                    {
+                        ticks: {
+                            beginAtZero: true,
+                        },
+                    },
+                ],
+                xAxes: [
+                    {
+                        type: "linear",
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function (value, index, values) {
+                                return value + " s";
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    }
+);
+
+/*
+function nextStep() {
+    simulation.update();
+    tempChart.update();
+
+    setTimeout(nextStep, 10);
+}
+nextStep();
+*/
+
+const next_step = () => {
+    if (simulation.get_current_temp() > 400) {
+        simulation.set_heater_duty(0.0);
+    } else {
+        simulation.set_heater_duty(1.0);
+    }
+    simulation.update();
+};
+
+while (simulation.time < 300) next_step();
+simulation.set_touches_solder(true);
+while (simulation.time < 400) next_step();
+simulation.set_touches_solder(false);
+while (simulation.time < 500) next_step();
+
+tempChart.update();
+dutyChart.update();
