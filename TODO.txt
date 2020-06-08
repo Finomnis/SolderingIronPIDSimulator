@@ -1,0 +1,2 @@
+- Re-implement simulation in Rust-Wasm
+- Implement PID tuning algorithm (based on https://reprap.org/wiki/PID_Tuning)
