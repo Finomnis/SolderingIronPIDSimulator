@@ -1,0 +1,70 @@
+import { Simulation } from "./simulation";
+import { SimpleController } from "./controllers/simple";
+import { createCharts } from "./charts";
+
+let { tempChart, dutyChart } = createCharts();
+
+let simulation_parameters = {
+    heater_max_power: 100.0,
+    thermal_mass_heater: 5.0,
+    thermal_mass_tip: 5.0,
+    thermal_coupling_heater: 0.3,
+    thermal_coupling_air: 0.1,
+    thermal_mass_solder: 5.0,
+    thermal_coupling_solder: 1.0,
+    thermal_coupling_solder_air: 0.05,
+    time_step: 0.1,
+    air_temp: 25.0,
+};
+
+let wasm = null;
+
+function run_simulation_js(simulation_parameters) {
+    let simulation = new Simulation(simulation_parameters);
+
+    const controller = new SimpleController(400);
+
+    const next_step = () => {
+        const new_duty = controller.update({
+            time: simulation.get_current_time(),
+            temperature: simulation.get_current_temp(),
+        });
+
+        simulation.set_heater_duty(Math.min(1.0, Math.max(0.0, new_duty)));
+        simulation.update();
+    };
+
+    while (simulation.time < 100) next_step();
+    while (simulation.time < 300) next_step();
+    simulation.set_touches_solder(true);
+    while (simulation.time < 400) next_step();
+    simulation.set_touches_solder(false);
+    while (simulation.time < 499) next_step();
+
+    return simulation;
+}
+
+function update_simulation() {
+    if (wasm === null) {
+        console.log("Warning: wasm not loaded yet.");
+        return;
+    }
+
+    const t0 = performance.now();
+    const simulation = run_simulation_js(simulation_parameters);
+    const t1 = performance.now();
+    console.log("Computation time: " + (t1 - t0) + " ms");
+
+    tempChart.data.datasets[0].data = simulation.chart_temp_heater;
+    tempChart.data.datasets[1].data = simulation.chart_temp_tip;
+    tempChart.data.datasets[2].data = simulation.chart_temp_solder;
+    dutyChart.data.datasets[0].data = simulation.chart_touches_solder;
+    dutyChart.data.datasets[1].data = simulation.chart_heater_duty;
+    tempChart.update();
+    dutyChart.update();
+}
+
+export function main(wasm_) {
+    wasm = wasm_;
+    update_simulation();
+}

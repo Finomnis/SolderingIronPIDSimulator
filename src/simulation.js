@@ -1,8 +1,5 @@
 import { runge_kutta } from "./solver";
 
-const TIME_STEP = 0.1;
-const AIR_TEMP = 25.0;
-
 const math_helpers = {
     add: (val1, val2) => ({
         temp_heater: val1.temp_heater + val2.temp_heater,
@@ -26,11 +23,17 @@ export class Simulation {
         thermal_coupling_air,
         thermal_coupling_solder,
         thermal_coupling_solder_air,
+        air_temp,
+        time_step,
     }) {
+        // Stepping size
+        this.time_step = time_step;
+
         // Simulated values
-        this.temp_heater = AIR_TEMP;
-        this.temp_tip = AIR_TEMP;
-        this.temp_solder = AIR_TEMP;
+        this.air_temp = air_temp;
+        this.temp_heater = air_temp;
+        this.temp_tip = air_temp;
+        this.temp_solder = air_temp;
         this.time = 0.0;
 
         // Constants
@@ -48,6 +51,7 @@ export class Simulation {
         this.touches_solder = false;
 
         // Charts
+        this.time_chart_next = 0.0;
         this.chart_temp_heater = [];
         this.chart_temp_tip = [];
         this.chart_temp_solder = [];
@@ -58,6 +62,9 @@ export class Simulation {
     }
 
     update_charts() {
+        if (this.time < this.time_chart_next) return;
+        this.time_chart_next += 1.0;
+
         this.chart_temp_heater.push({ x: this.time, y: this.temp_heater });
         this.chart_temp_tip.push({ x: this.time, y: this.temp_tip });
         this.chart_temp_solder.push({ x: this.time, y: this.temp_solder });
@@ -71,7 +78,7 @@ export class Simulation {
     update() {
         this.update_temperatures();
 
-        this.time += TIME_STEP;
+        this.time += this.time_step;
         this.update_charts();
     }
 
@@ -83,14 +90,15 @@ export class Simulation {
                 (temp_heater - temp_tip) * this.thermal_coupling_heater;
 
             const power_transferred_tip_air =
-                (temp_tip - AIR_TEMP) * this.thermal_coupling_air;
+                (temp_tip - this.air_temp) * this.thermal_coupling_air;
 
             const power_transferred_tip_solder = this.touches_solder
                 ? (temp_tip - temp_solder) * this.thermal_coupling_solder
                 : 0.0;
 
             const power_transferred_solder_air =
-                (temp_solder - AIR_TEMP) * this.thermal_coupling_solder_air;
+                (temp_solder - this.air_temp) *
+                this.thermal_coupling_solder_air;
 
             const deriv_temp_heater =
                 (heater_power - power_transferred_heater_tip) /
@@ -117,7 +125,12 @@ export class Simulation {
             temp_solder: this.temp_solder,
         };
 
-        const new_values = runge_kutta(TIME_STEP, f, old_values, math_helpers);
+        const new_values = runge_kutta(
+            this.time_step,
+            f,
+            old_values,
+            math_helpers
+        );
 
         this.temp_heater = new_values.temp_heater;
         this.temp_tip = new_values.temp_tip;
