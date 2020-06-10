@@ -2,6 +2,10 @@ import Chart from "chart.js";
 import { Simulation } from "./simulation";
 import { SimpleController } from "./controllers/simple";
 
+import("../wasm/pkg").then((module) => {
+    module.greet("Test!");
+});
+
 let simulation = new Simulation({
     heater_max_power: 100.0,
     thermal_mass_heater: 5.0,
