@@ -1,6 +1,7 @@
+use serde_json::json;
 use wasm_bindgen::prelude::*;
 
-use js_sys::{Object, Reflect};
+use js_sys::Object;
 
 mod logger;
 mod simulation;
@@ -8,40 +9,21 @@ mod simulation;
 use simulation::Simulation;
 
 #[wasm_bindgen]
-pub fn run_simulation(simulation_parameters: Object) -> Result<Object, JsValue> {
+pub fn run_simulation(simulation_parameters: Object) -> Result<String, JsValue> {
     let mut simulation = Simulation::new(simulation_parameters)?;
 
     while simulation.get_time() < 500.0 {
         simulation.update()?;
     }
 
-    let result = Object::new();
+    let result = json!({
+        "time": simulation.chart_time,
+        "chart_temp_heater": simulation.chart_temp_heater,
+        "chart_temp_tip": simulation.chart_temp_tip,
+        "chart_temp_solder": simulation.chart_temp_solder,
+        "chart_touches_solder": simulation.chart_touches_solder,
+        "chart_heater_duty": simulation.chart_heater_duty,
+    });
 
-    Reflect::set(
-        &result,
-        &"chart_temp_heater".into(),
-        &simulation.chart_temp_heater,
-    )?;
-    Reflect::set(
-        &result,
-        &"chart_temp_tip".into(),
-        &simulation.chart_temp_tip,
-    )?;
-    Reflect::set(
-        &result,
-        &"chart_temp_solder".into(),
-        &simulation.chart_temp_solder,
-    )?;
-    Reflect::set(
-        &result,
-        &"chart_touches_solder".into(),
-        &simulation.chart_touches_solder,
-    )?;
-    Reflect::set(
-        &result,
-        &"chart_heater_duty".into(),
-        &simulation.chart_heater_duty,
-    )?;
-
-    Ok(result)
+    Ok(result.to_string())
 }

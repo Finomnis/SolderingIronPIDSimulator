@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { Simulation } from "./simulation";
 import { SimpleController } from "./controllers/simple";
 import { createCharts } from "./charts";
@@ -50,7 +51,40 @@ function run_simulation_rs(simulation_parameters) {
         console.log("Warning: wasm not loaded yet.");
         return;
     }
-    const result = wasm.run_simulation(simulation_parameters);
+
+    const t0 = performance.now();
+    const result_str = wasm.run_simulation(simulation_parameters);
+
+    const t1 = performance.now();
+    const json_vals = JSON.parse(result_str);
+
+    const convert_to_xy = (timestamps, data) =>
+        _.zip(timestamps, data).map(([t, v]) => ({ x: t, y: v }));
+
+    const result = {
+        chart_temp_heater: convert_to_xy(
+            json_vals.time,
+            json_vals.chart_temp_heater
+        ),
+        chart_temp_tip: convert_to_xy(json_vals.time, json_vals.chart_temp_tip),
+        chart_temp_solder: convert_to_xy(
+            json_vals.time,
+            json_vals.chart_temp_solder
+        ),
+        chart_heater_duty: convert_to_xy(
+            json_vals.time,
+            json_vals.chart_heater_duty
+        ),
+        chart_touches_solder: convert_to_xy(
+            json_vals.time,
+            json_vals.chart_touches_solder
+        ),
+    };
+    const t2 = performance.now();
+
+    console.log("Computation: " + (t1 - t0) + " ms");
+    console.log("Postprocessing: " + (t2 - t1) + " ms");
+
     return result;
 }
 
@@ -58,7 +92,7 @@ function update_simulation() {
     const t0 = performance.now();
     const simulation = run_simulation_rs(simulation_parameters);
     const t1 = performance.now();
-    console.log("Computation time: " + (t1 - t0) + " ms");
+    console.log("Total update: " + (t1 - t0) + " ms");
 
     tempChart.data.datasets[0].data = simulation.chart_temp_heater;
     tempChart.data.datasets[1].data = simulation.chart_temp_tip;

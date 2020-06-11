@@ -29,7 +29,7 @@ export function createCharts() {
             },
             options: {
                 animation: {
-                    duration: 0, // general animation time
+                    //duration: 0, // general animation time
                 },
                 scales: {
                     yAxes: [
@@ -80,7 +80,7 @@ export function createCharts() {
             },
             options: {
                 animation: {
-                    duration: 0, // general animation time
+                    //duration: 0, // general animation time
                 },
                 scales: {
                     yAxes: [

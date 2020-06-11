@@ -1,4 +1,6 @@
-use js_sys::{Array, Object, Reflect};
+use js_sys::{Object, Reflect};
+use serde_json::json;
+use serde_json::value::Value as Json;
 use wasm_bindgen::prelude::*;
 
 pub struct Simulation {
@@ -29,11 +31,12 @@ pub struct Simulation {
 
     // Charts
     time_chart_next: f32,
-    pub chart_temp_heater: Array,
-    pub chart_temp_tip: Array,
-    pub chart_temp_solder: Array,
-    pub chart_heater_duty: Array,
-    pub chart_touches_solder: Array,
+    pub chart_time: Vec<u32>,
+    pub chart_temp_heater: Vec<f32>,
+    pub chart_temp_tip: Vec<f32>,
+    pub chart_temp_solder: Vec<f32>,
+    pub chart_heater_duty: Vec<f32>,
+    pub chart_touches_solder: Vec<u32>,
 }
 
 fn get_f32(obj: &Object, key: &str) -> Result<f32, JsValue> {
@@ -77,11 +80,12 @@ impl Simulation {
 
             // Charts
             time_chart_next: 0.0,
-            chart_temp_heater: Array::new(),
-            chart_temp_tip: Array::new(),
-            chart_temp_solder: Array::new(),
-            chart_heater_duty: Array::new(),
-            chart_touches_solder: Array::new(),
+            chart_time: vec![],
+            chart_temp_heater: vec![],
+            chart_temp_tip: vec![],
+            chart_temp_solder: vec![],
+            chart_heater_duty: vec![],
+            chart_touches_solder: vec![],
         };
 
         result.update_charts()?;
@@ -90,27 +94,14 @@ impl Simulation {
     }
 
     fn update_charts(&mut self) -> Result<(), JsValue> {
-        let create_datapoint = |data: f32| -> Result<JsValue, JsValue> {
-            let entry = Object::new();
-            Reflect::set(&entry, &"x".into(), &JsValue::from(self.time))?;
-            Reflect::set(&entry, &"y".into(), &JsValue::from(data))?;
-            Ok(entry.into())
-        };
-
         if self.time >= self.time_chart_next {
-            self.chart_temp_heater
-                .push(&create_datapoint(self.temp_heater)?);
-            self.chart_temp_tip.push(&create_datapoint(self.temp_tip)?);
-            self.chart_temp_solder
-                .push(&create_datapoint(self.temp_solder)?);
-            self.chart_heater_duty
-                .push(&create_datapoint(self.heater_duty)?);
+            self.chart_time.push(self.time as u32);
+            self.chart_temp_heater.push(self.temp_heater);
+            self.chart_temp_tip.push(self.temp_tip);
+            self.chart_temp_solder.push(self.temp_solder);
+            self.chart_heater_duty.push(self.heater_duty);
             self.chart_touches_solder
-                .push(&create_datapoint(if self.touches_solder {
-                    1.0
-                } else {
-                    0.0
-                })?);
+                .push(if self.touches_solder { 1 } else { 0 });
 
             self.time_chart_next += self.time_step_charts;
         }
