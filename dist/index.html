@@ -15,6 +15,23 @@
             *:after {
                 box-sizing: inherit;
             }
+
+            td {
+                padding: 0.1em;
+            }
+            td:first-child {
+                text-align: center;
+            }
+
+            td:last-child {
+                padding-left: 0.3em;
+                vertical-align: bottom;
+                padding-bottom: 0.32em;
+            }
+
+            input[type="button"] {
+                margin: 1em;
+            }
         </style>
     </head>
     <body>
@@ -43,17 +60,7 @@
                     <canvas id="dutyChart"></canvas>
                 </div>
             </div>
-            <div style="flex: 0 0 auto; padding: 1em;">
-                <input
-                    type="range"
-                    id="volume"
-                    name="volume"
-                    min="0"
-                    max="100"
-                    step="any"
-                />
-                <label for="volume">Volume</label>
-            </div>
+            <div id="inputs" style="flex: 0 0 auto; padding: 1em;"></div>
         </div>
         <script src="main.js"></script>
     </body>

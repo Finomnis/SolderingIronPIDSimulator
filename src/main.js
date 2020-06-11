@@ -2,6 +2,7 @@ import _ from "lodash";
 import { Simulation } from "./simulation";
 import { SimpleController } from "./controllers/simple";
 import { createCharts } from "./charts";
+import { createInputs } from "./inputs";
 
 let { tempChart, dutyChart } = createCharts();
 
@@ -105,5 +106,6 @@ function update_simulation() {
 
 export function main(wasm_) {
     wasm = wasm_;
+    createInputs(update_simulation, simulation_parameters);
     update_simulation();
 }
