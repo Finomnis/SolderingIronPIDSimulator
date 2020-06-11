@@ -37,7 +37,6 @@ export function createInputs(updateSimulation, settings) {
             settings[id] = lin_to_log(min, max, current_value);
             update_value();
             updateSimulation();
-            console.log(min, max, current_value, settings[id]);
         };
 
         let reset_handler = () => {
