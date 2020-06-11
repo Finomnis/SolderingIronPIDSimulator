@@ -3,17 +3,27 @@ use wasm_bindgen::prelude::*;
 
 use js_sys::Object;
 
+mod controllers;
 mod logger;
 mod simulation;
+mod simulation_state;
+mod solvers;
 
+use controllers::Controller;
+use controllers::SimpleController;
 use simulation::Simulation;
 
 #[wasm_bindgen]
 pub fn run_simulation(simulation_parameters: Object) -> Result<String, JsValue> {
     let mut simulation = Simulation::new(simulation_parameters)?;
 
+    let mut controller = SimpleController::new();
+    controller.set_target_temperature(400.0);
+
     while simulation.get_time() < 500.0 {
-        simulation.update()?;
+        let heater_duty = controller.update(simulation.get_temperature());
+        simulation.set_heater_duty(heater_duty);
+        simulation.update();
     }
 
     let result = json!({
