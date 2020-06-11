@@ -1,3 +1,11 @@
+function log_to_lin(min, max, value) {
+    return Math.log(value / min) / Math.log(max / min);
+}
+
+function lin_to_log(min, max, value) {
+    return min * Math.pow(max / min, value);
+}
+
 export function createInputs(updateSimulation, settings) {
     let table = document.createElement("table");
 
@@ -16,26 +24,25 @@ export function createInputs(updateSimulation, settings) {
 
         let input_elem = document.createElement("input");
         input_elem.setAttribute("type", "range");
-        input_elem.setAttribute("min", min);
-        input_elem.setAttribute("max", max);
+        input_elem.setAttribute("min", 0);
+        input_elem.setAttribute("max", 1);
         input_elem.setAttribute("step", "any");
-        input_elem.value = settings[id];
+        input_elem.value = log_to_lin(min, max, settings[id]);
 
         let input_handler = () => {
-            const prev_value = settings[id];
+            const prev_value = log_to_lin(min, max, settings[id]);
             const current_value = input_elem.valueAsNumber;
-
             if (prev_value == current_value) return;
 
-            settings[id] = current_value;
+            settings[id] = lin_to_log(min, max, current_value);
             update_value();
             updateSimulation();
-            console.log(current_value);
+            console.log(min, max, current_value, settings[id]);
         };
 
         let reset_handler = () => {
             update_value();
-            input_elem.value = settings[id];
+            input_elem.value = log_to_lin(min, max, settings[id]);
         };
         reset_handlers.push(reset_handler);
 
