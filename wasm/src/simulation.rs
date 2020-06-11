@@ -120,11 +120,17 @@ impl Simulation {
     pub fn get_time(&self) -> f32 {
         self.time
     }
+    pub fn get_time_step(&self) -> f32 {
+        self.time_step
+    }
     pub fn get_temperature(&self) -> f32 {
         self.simulation_state.temp_tip
     }
     pub fn set_heater_duty(&mut self, duty: f32) {
         self.heater_duty = duty;
+    }
+    pub fn set_touches_solder(&mut self, touches: bool) {
+        self.touches_solder = touches;
     }
 
     fn update_temperatures(&mut self) {

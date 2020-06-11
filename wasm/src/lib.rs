@@ -20,11 +20,22 @@ pub fn run_simulation(simulation_parameters: Object) -> Result<String, JsValue> 
     let mut controller = SimpleController::new();
     controller.set_target_temperature(400.0);
 
-    while simulation.get_time() < 500.0 {
+    let mut next_step = |max_time: f32, simulation: &mut Simulation| -> bool {
         let heater_duty = controller.update(simulation.get_temperature());
         simulation.set_heater_duty(heater_duty);
         simulation.update();
-    }
+        simulation.get_time() + simulation.get_time_step() < max_time
+    };
+
+    while next_step(100.0, &mut simulation) {}
+
+    while next_step(300.0, &mut simulation) {}
+
+    simulation.set_touches_solder(true);
+    while next_step(400.0, &mut simulation) {}
+
+    simulation.set_touches_solder(false);
+    while next_step(500.0, &mut simulation) {}
 
     let result = json!({
         "time": simulation.chart_time,
