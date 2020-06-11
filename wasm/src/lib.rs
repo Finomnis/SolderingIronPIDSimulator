@@ -1,14 +1,47 @@
 use wasm_bindgen::prelude::*;
 
-// Import the `window.alert` function from the Web.
-#[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
+use js_sys::{Object, Reflect};
 
-// Export a `greet` function from Rust to JavaScript, that alerts a
-// hello message.
+mod logger;
+mod simulation;
+
+use simulation::Simulation;
+
 #[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}!", name));
+pub fn run_simulation(simulation_parameters: Object) -> Result<Object, JsValue> {
+    let mut simulation = Simulation::new(simulation_parameters)?;
+
+    while simulation.get_time() < 500.0 {
+        simulation.update()?;
+    }
+
+    let result = Object::new();
+
+    Reflect::set(
+        &result,
+        &"chart_temp_heater".into(),
+        &simulation.chart_temp_heater,
+    )?;
+    Reflect::set(
+        &result,
+        &"chart_temp_tip".into(),
+        &simulation.chart_temp_tip,
+    )?;
+    Reflect::set(
+        &result,
+        &"chart_temp_solder".into(),
+        &simulation.chart_temp_solder,
+    )?;
+    Reflect::set(
+        &result,
+        &"chart_touches_solder".into(),
+        &simulation.chart_touches_solder,
+    )?;
+    Reflect::set(
+        &result,
+        &"chart_heater_duty".into(),
+        &simulation.chart_heater_duty,
+    )?;
+
+    Ok(result)
 }

@@ -25,9 +25,11 @@ export class Simulation {
         thermal_coupling_solder_air,
         air_temp,
         time_step,
+        time_step_charts,
     }) {
         // Stepping size
         this.time_step = time_step;
+        this.time_step_charts = time_step_charts;
 
         // Simulated values
         this.air_temp = air_temp;
@@ -63,7 +65,7 @@ export class Simulation {
 
     update_charts() {
         if (this.time < this.time_chart_next) return;
-        this.time_chart_next += 1.0;
+        this.time_chart_next += this.time_step_charts;
 
         this.chart_temp_heater.push({ x: this.time, y: this.temp_heater });
         this.chart_temp_tip.push({ x: this.time, y: this.temp_tip });

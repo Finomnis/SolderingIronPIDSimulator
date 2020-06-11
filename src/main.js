@@ -14,6 +14,7 @@ let simulation_parameters = {
     thermal_coupling_solder: 1.0,
     thermal_coupling_solder_air: 0.05,
     time_step: 0.1,
+    time_step_charts: 1.0,
     air_temp: 25.0,
 };
 
@@ -44,14 +45,18 @@ function run_simulation_js(simulation_parameters) {
     return simulation;
 }
 
-function update_simulation() {
+function run_simulation_rs(simulation_parameters) {
     if (wasm === null) {
         console.log("Warning: wasm not loaded yet.");
         return;
     }
+    const result = wasm.run_simulation(simulation_parameters);
+    return result;
+}
 
+function update_simulation() {
     const t0 = performance.now();
-    const simulation = run_simulation_js(simulation_parameters);
+    const simulation = run_simulation_rs(simulation_parameters);
     const t1 = performance.now();
     console.log("Computation time: " + (t1 - t0) + " ms");
 
