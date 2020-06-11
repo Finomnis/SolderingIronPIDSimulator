@@ -88,8 +88,8 @@ export function createInputs(updateSimulation, settings) {
     createInput(
         "thermal_coupling_air",
         "Heat flow from Tip to Air",
-        0.01,
-        30,
+        0.001,
+        1,
         "W/K"
     );
     createInput(
@@ -102,8 +102,8 @@ export function createInputs(updateSimulation, settings) {
     createInput(
         "thermal_coupling_solder_air",
         "Heat flow from Solder Blob to Air",
-        0.01,
-        30,
+        0.001,
+        1,
         "W/K"
     );
     createInput("air_temp", "Air Temperature", 1, 100, "°C");
